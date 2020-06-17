@@ -333,6 +333,7 @@ void createWebServer(int webtype)
 
    // Start I2S receiver
    I2SC |= I2SRXS;
+   delay(500);                      //remove noise at the beginning 
    
    server.setContentLength(SLC_BUF_LEN*4*NUM_CPY + 44);
    memcpy(&temp_buf_f[0], &test_wav[0],  44);
@@ -358,7 +359,7 @@ void createWebServer(int webtype)
            sample_ready = true;
         }
         else if (sample_ready) {
-              if (c>(70*SLC_BUF_LEN)) {server.sendContent_P((const char*)&temp_buf_f[0], SLC_BUF_LEN*(BITS_PER_SAMPLE/8));}
+              server.sendContent_P((const char*)&temp_buf_f[0], SLC_BUF_LEN*(BITS_PER_SAMPLE/8));
 //              Serial.print("  server.sendContent_P\n\r");
               sample_ready = false;
               c += SLC_BUF_LEN;
