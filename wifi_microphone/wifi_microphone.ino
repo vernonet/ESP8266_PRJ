@@ -19,7 +19,7 @@
 #define I2S_SAMPLE_RATE      (22050)//(37400) (22050)  (33085) (16029)  frequency of mcu not accurate //write to stream
 #define I2S_SAMPLE_RATE_SET  (21400)//(36000) (21400)  (32000) (15500)   //21400 optimal for 22050    //set on I2S module
 #define BITS_PER_SAMPLE      (16)  // 16 or 24
-#define SIGNAL_GAIN          (32768)  //65536 no gain, if < 65536 -> gain+   //8192;//16384;//32768;//65536;
+#define SIGNAL_GAIN          (16384)  //65536 no gain, if < 65536 -> gain+   //8192;//16384;//32768;//65536;
 #define REC_TIME             (6000) //sec
 #define NUM_CPY              ((I2S_SAMPLE_RATE * BITS_PER_SAMPLE / 8 * REC_TIME)/SLC_BUF_LEN)//500000
 #define I2S_24BIT            3     // I2S 24 bit half data
