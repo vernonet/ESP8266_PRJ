@@ -16,8 +16,8 @@
 
 #define SERVER_PORT          8080
 #define I2S_CLK_FREQ         80000000  // Hz
-#define I2S_SAMPLE_RATE      (37400)//(22050)  (33085) (16029)  frequency of mcu not accurate //write to stream
-#define I2S_SAMPLE_RATE_SET  (36000)//(21400)  (32000) (15500)   //21400 optimal for 22050    //set on I2S module
+#define I2S_SAMPLE_RATE      (22050)//(37400) (22050)  (33085) (16029)  frequency of mcu not accurate //write to stream
+#define I2S_SAMPLE_RATE_SET  (21400)//(36000) (21400)  (32000) (15500)   //21400 optimal for 22050    //set on I2S module
 #define BITS_PER_SAMPLE      (16)  // 16 or 24
 #define SIGNAL_GAIN          (32768)  //65536 no gain, if < 65536 -> gain+   //8192;//16384;//32768;//65536;
 #define REC_TIME             (6000) //sec
@@ -27,12 +27,12 @@
 #define I2S_LEFT             2     // I2S RX Left channel
 #define I2S_DUAL             0     // I2S RX dual channel mode
 
-#define I2SI_DATA         12    // I2S data on IO12
-#define I2SI_BCK          13    // I2S clk on IO13
-#define I2SI_WS           14    // I2S select on IO14
+#define I2SI_DATA            12    // I2S data on IO12
+#define I2SI_BCK             13    // I2S clk on IO13
+#define I2SI_WS              14    // I2S select on IO14
 
-#define SLC_BUF_CNT       8    // Number of buffers in the I2S circular buffer   8
-#define SLC_BUF_LEN       96    // Length of one buffer, in 32-bit words.         64
+#define SLC_BUF_CNT          8    // Number of buffers in the I2S circular buffer   8
+#define SLC_BUF_LEN          96    // Length of one buffer, in 32-bit words.         64
 
 #define WIFI_CONNECT_TIMEOUT        30000L
 #define WHILE_LOOP_DELAY            200L
@@ -231,7 +231,6 @@ void setup(void){
  
 void loop(void){
   int32_t value;
-  char withScale[256];
   char buff[9];
 
 #ifndef NO_WIFI
@@ -246,6 +245,14 @@ void loop(void){
       Serial.printf("%02d", timeClient.getMinutes());
       Serial.print("\n\r");
       timeClient.update();
+	  if (WiFi.status() != WL_CONNECTED){
+        Serial.println("NO WIFI, try to connect");
+        WiFi.mode(WIFI_STA);
+        WiFi.hostname("wifi-mic");
+        WiFi.persistent (true);
+        //WiFi.setOutputPower(0);
+        WiFi.begin(Router_SSID.c_str(), Router_Pass.c_str());
+     }
     }
     tme++;
     if (tme > 1000000) tme = 0;
@@ -333,6 +340,7 @@ void createWebServer(int webtype)
 
    // Start I2S receiver
    I2SC |= I2SRXS;
+   delay(500);                      //remove noise at the beginning 
    
    server.setContentLength(SLC_BUF_LEN*4*NUM_CPY + 44);
    memcpy(&temp_buf_f[0], &test_wav[0],  44);
@@ -358,7 +366,7 @@ void createWebServer(int webtype)
            sample_ready = true;
         }
         else if (sample_ready) {
-              if (c>(70*SLC_BUF_LEN)) {server.sendContent_P((const char*)&temp_buf_f[0], SLC_BUF_LEN*(BITS_PER_SAMPLE/8));}
+              server.sendContent_P((const char*)&temp_buf_f[0], SLC_BUF_LEN*(BITS_PER_SAMPLE/8));
 //              Serial.print("  server.sendContent_P\n\r");
               sample_ready = false;
               c += SLC_BUF_LEN;
