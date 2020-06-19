@@ -149,7 +149,7 @@ void setup(void){
 #endif
   delay(500);
 
-  Serial.begin(230400);//(115200);  //230400
+  Serial.begin(500000);//(115200);  //230400
   Serial.println("\nStarting");
 
   slc_init();
