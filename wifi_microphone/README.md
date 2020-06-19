@@ -5,6 +5,9 @@
   Initially, you need to connect to the access point "wifi-mic_ap" and configure the access settings.
   You can find the ip address from the UART terminal, or from the program on your smartphone - "bonjour browser".
   Examples of recording audio 16 and 24 bits - tttt_16.wav , tttt_24.wav
+  
+  serial_audio.exe - program for wifi_microphone,  it allows you to testing  microphone through a serial port (uncomment  "//#define NO_WIFI", only BITS_PER_SAMPLE = 16, baudrate = 500000).
+
 
 # License
 
