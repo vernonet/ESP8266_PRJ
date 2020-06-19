@@ -608,7 +608,11 @@ void prepare_sample(int16_t * d_buff, uint32_t* s_buff, uint32_t len)   //len - 
     int32_t temp;
     for (int i = 0; i < len; i ++) {
         temp = *(int32_t *)&s_buff[i];
+#ifdef NO_WIFI	
+        temp = temp/65536;	
+#else		
         temp = temp/SIGNAL_GAIN;                            //8192;//16384;//32768;//65536;
+#endif
         //Serial.printf("  %08x", temp);
         d_buff[i] = (int16_t)(temp); 
         //Serial.printf("  %04x\n\r", d_buff[i]);  
