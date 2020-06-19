@@ -144,7 +144,9 @@ void setup(void){
   pinMode(I2SI_BCK, OUTPUT);
   pinMode(I2SI_DATA, INPUT);
 
- // WiFi.forceSleepBegin();
+#ifdef NO_WIFI
+  WiFi.forceSleepBegin();
+#endif
   delay(500);
 
   Serial.begin(230400);//(115200);  //230400
@@ -304,10 +306,12 @@ void loop(void){
 //      Serial.print(value, HEX);
 //         Serial.printf("   %08X",  value);
 //        Serial.printf("   %04X",  val_tmp);
-          sprintf (buff, "%08X", value);
+//         sprintf (buff, "%08X", value);
 //        
-          Serial.write(&buff[0], 4);
-          Serial.write(0x20);
+//          Serial.write(&buff[0], 4);       //for terminal
+//          Serial.write(0x20);              //for terminal
+	   Serial.write((value>>24)&0xFF);   //for serial audio
+           Serial.write((value>>16)&0xFF);   //for serial audio
 
 //         Serial.printf("    %d   ",  value);
 //         Serial.printf("  int_16 -> %05d", value>>16);
@@ -315,7 +319,7 @@ void loop(void){
      }
     
     rx_buf_flag = false;
-    Serial.print("\n\r");
+//    Serial.print("\n\r");
    }
 #endif
   
