@@ -12,9 +12,10 @@
 // INMP441 MEMS MICROPHONE
 //insert in vlc  "http:\\wifi-mic.local:8080\rec.wav"  or "http:\\ip:8080\rec.wav"
 
-//#define NO_WIFI
+#define NO_WIFI
 
 #define SERVER_PORT          8080
+#define BAUDRATE             921600    //500000
 #define I2S_CLK_FREQ         80000000  // Hz
 #define I2S_SAMPLE_RATE      (22050)//(37400) (22050)  (33085) (16029)  frequency of mcu not accurate //write to stream
 #define I2S_SAMPLE_RATE_SET  (21400)//(36000) (21400)  (32000) (15500)   //21400 optimal for 22050    //set on I2S module
@@ -149,7 +150,7 @@ void setup(void){
 #endif
   delay(500);
 
-  Serial.begin(500000);//(115200);  //230400
+  Serial.begin(BAUDRATE);//(115200);  //230400
   Serial.println("\nStarting");
 
   slc_init();
@@ -308,10 +309,17 @@ void loop(void){
 //        Serial.printf("   %04X",  val_tmp);
 //         sprintf (buff, "%08X", value);
 //        
+//#if BITS_PER_SAMPLE == 24 
+//          Serial.write(&buff[0], 6);       //for terminal
+//#else
 //          Serial.write(&buff[0], 4);       //for terminal
+//#endif
 //          Serial.write(0x20);              //for terminal
-	   Serial.write((value>>24)&0xFF);   //for serial audio
+	         Serial.write((value>>24)&0xFF);   //for serial audio
            Serial.write((value>>16)&0xFF);   //for serial audio
+#if BITS_PER_SAMPLE == 24 
+           Serial.write((value>>8)&0xFF);    //for serial audio
+#endif                     
 
 //         Serial.printf("    %d   ",  value);
 //         Serial.printf("  int_16 -> %05d", value>>16);
