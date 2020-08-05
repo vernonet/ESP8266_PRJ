@@ -12,15 +12,15 @@
 // SPH0645, INMP441 MEMS MICROPHONE
 //insert in vlc  "http:\\wifi-mic.local:8080\rec.wav"  or "http:\\ip:8080\rec.wav"   ip - ip address of mic
 
-#define NO_WIFI            //testing the microphone using the "serial_audio.exe" program.
+//#define NO_WIFI            //testing the microphone using the "serial_audio.exe" program.
 #define USE_SPH0645          
 
 #define SERVER_PORT          8080
-#define BAUDRATE             921600//921600    //500000
+#define BAUDRATE             921600//921600//921600    //500000 //baud one of 300, 600, 1200, 2400, 4800, 9600, 19200, 31250, 38400, 57600, 74880, 115200, 230400, 256000, 460800, 921600, 1843200, 3686400
 #define I2S_CLK_FREQ         80000000  // Hz
 #define I2S_SAMPLE_RATE      (33085)//(37400) (22050)  (33085) (16029)  frequency of mcu not accurate //write to stream
 #define I2S_SAMPLE_RATE_SET  (32000)//(36000) (21400)  (32000) (15500)   //21400 optimal for 22050    //set on I2S module
-#define BITS_PER_SAMPLE      (16)  // 16 or 24
+#define BITS_PER_SAMPLE      (16)  // 16 or 24        //for 24bit & SAMPLE_RATE <= 33085 need baudrate > 921600
 #define SIGNAL_GAIN          (16384)//(65536)//(16384)  //65536 no gain, if < 65536 -> gain+   //8192;//16384;//32768;//65536; //130000   262144 131072
 #define REC_TIME             (6000) //sec
 #define NUM_CPY              ((I2S_SAMPLE_RATE * BITS_PER_SAMPLE / 8 * REC_TIME)/SLC_BUF_LEN)//500000
@@ -300,6 +300,7 @@ void loop(void){
   }
 #else
    uint32_t temp;
+   int16_t  temp_S16;
    if (rx_buf_flag) {
      for (int x = 0; x < SLC_BUF_LEN; x++) {
 //        Serial.printf("%08x   ", i2s_slc_buf_pntr[rx_buf_idx][x]);
@@ -307,6 +308,7 @@ void loop(void){
 //        value = *(int32_t*)&i2s_slc_buf_pntr[rx_buf_idx][x];
           value =  *(int32_t*)&temp;  
           value = value/SIGNAL_GAIN;
+          temp_S16 = (int16_t)(value);
 //        val_tmp = (int16_t)(value/65536);
 //      Serial.print(i2s_slc_buf_pntr[rx_buf_idx][x], HEX);
 //      Serial.print(value, HEX);
@@ -322,11 +324,14 @@ void loop(void){
 //#endif
 //          Serial.write(0x20);              //for terminal
 
+#if BITS_PER_SAMPLE == 16           
+	         Serial.write((temp_S16)   &0xFF);   //for serial audio  0
+           Serial.write((temp_S16>>8)&0xFF);   //for serial audio  8
           
-	         Serial.write((value>>0)&0xFF);   //for serial audio  0
-           Serial.write((value>>8)&0xFF);   //for serial audio  8
-          
-#if BITS_PER_SAMPLE == 24 
+#else
+           //24-bits 
+           Serial.write((value)&0xFF);    //for serial audio  16
+           Serial.write((value>>8)&0xFF);    //for serial audio  16
            Serial.write((value>>16)&0xFF);    //for serial audio  16
 #endif                     
 
