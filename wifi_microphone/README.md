@@ -8,7 +8,7 @@
   
   serial_audio.exe - program for wifi_microphone,  it allows you to testing  microphone through a serial port (uncomment  "//#define NO_WIFI", only BITS_PER_SAMPLE = 16, baudrate = 500000).
   
- My microphone module  INMP441 broke down after a while, i tested another module - SPH0645, it gives a better sound.
+ My microphone module  INMP441 broke down after a while, i tested another module - GY-SPH0645, it gives a better sound.
 
 
 # License

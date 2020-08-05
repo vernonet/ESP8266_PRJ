@@ -9,18 +9,19 @@
 #include "sample_wav.h"   //test wav  file
 
 // I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S I2S
-// INMP441 MEMS MICROPHONE
-//insert in vlc  "http:\\wifi-mic.local:8080\rec.wav"  or "http:\\ip:8080\rec.wav"
+// SPH0645, INMP441 MEMS MICROPHONE
+//insert in vlc  "http:\\wifi-mic.local:8080\rec.wav"  or "http:\\ip:8080\rec.wav"   ip - ip address of mic
 
-#define NO_WIFI
+#define NO_WIFI            //testing the microphone using the "serial_audio.exe" program.
+#define USE_SPH0645          
 
 #define SERVER_PORT          8080
-#define BAUDRATE             921600    //500000
+#define BAUDRATE             921600//921600    //500000
 #define I2S_CLK_FREQ         80000000  // Hz
-#define I2S_SAMPLE_RATE      (22050)//(37400) (22050)  (33085) (16029)  frequency of mcu not accurate //write to stream
-#define I2S_SAMPLE_RATE_SET  (21400)//(36000) (21400)  (32000) (15500)   //21400 optimal for 22050    //set on I2S module
+#define I2S_SAMPLE_RATE      (33085)//(37400) (22050)  (33085) (16029)  frequency of mcu not accurate //write to stream
+#define I2S_SAMPLE_RATE_SET  (32000)//(36000) (21400)  (32000) (15500)   //21400 optimal for 22050    //set on I2S module
 #define BITS_PER_SAMPLE      (16)  // 16 or 24
-#define SIGNAL_GAIN          (65536)//(16384)  //65536 no gain, if < 65536 -> gain+   //8192;//16384;//32768;//65536;
+#define SIGNAL_GAIN          (16384)//(65536)//(16384)  //65536 no gain, if < 65536 -> gain+   //8192;//16384;//32768;//65536; //130000   262144 131072
 #define REC_TIME             (6000) //sec
 #define NUM_CPY              ((I2S_SAMPLE_RATE * BITS_PER_SAMPLE / 8 * REC_TIME)/SLC_BUF_LEN)//500000
 #define I2S_24BIT            3     // I2S 24 bit half data
@@ -41,7 +42,7 @@
 
 #define reverse_bytes(val)  ((val & 0x000000FFU) << 24 | (val & 0x0000FF00U) << 8 |(val & 0x00FF0000U) >> 8 | (val & 0xFF000000U) >> 24)
 #define reverse_halfword(val)  ((val & 0x00FFU) << 24 |  (val & 0xFF000000U) >> 24)
-#define reverse_sample16(val)  (((val >> 8)&0xFF) |  ((val << 8)&0xFF00))
+#define reverse_sample16(val)  (((val >> 8)&0xFF) | ((val << 8)&0xFF00))
 
 
 typedef struct {
@@ -298,14 +299,19 @@ void loop(void){
     digitalWrite(PIN_LED, LED_OFF); // Turn led off as we are not in configuration mode.
   }
 #else
+   uint32_t temp;
    if (rx_buf_flag) {
      for (int x = 0; x < SLC_BUF_LEN; x++) {
 //        Serial.printf("%08x   ", i2s_slc_buf_pntr[rx_buf_idx][x]);
-        value = *(int32_t*)&i2s_slc_buf_pntr[rx_buf_idx][x];    
+          temp = i2s_slc_buf_pntr[rx_buf_idx][x]<<1;
+//        value = *(int32_t*)&i2s_slc_buf_pntr[rx_buf_idx][x];
+          value =  *(int32_t*)&temp;  
+          value = value/SIGNAL_GAIN;
 //        val_tmp = (int16_t)(value/65536);
 //      Serial.print(i2s_slc_buf_pntr[rx_buf_idx][x], HEX);
 //      Serial.print(value, HEX);
 //         Serial.printf("   %08X",  value);
+//         Serial.printf("   %08X",  (value<<1)/65536);
 //        Serial.printf("   %04X",  val_tmp);
 //         sprintf (buff, "%08X", value);
 //        
@@ -315,11 +321,15 @@ void loop(void){
 //          Serial.write(&buff[0], 4);       //for terminal
 //#endif
 //          Serial.write(0x20);              //for terminal
-	         Serial.write((value>>24)&0xFF);   //for serial audio
-           Serial.write((value>>16)&0xFF);   //for serial audio
+
+          
+	         Serial.write((value>>0)&0xFF);   //for serial audio  0
+           Serial.write((value>>8)&0xFF);   //for serial audio  8
+          
 #if BITS_PER_SAMPLE == 24 
-           Serial.write((value>>8)&0xFF);    //for serial audio
+           Serial.write((value>>16)&0xFF);    //for serial audio  16
 #endif                     
+
 
 //         Serial.printf("    %d   ",  value);
 //         Serial.printf("  int_16 -> %05d", value>>16);
@@ -615,16 +625,20 @@ void prepare_sample(int16_t * d_buff, uint32_t* s_buff, uint32_t len)   //len - 
 {
     int32_t temp;
     int16_t temp_16;
+    uint32_t tempU32;
+    
     for (int i = 0; i < len; i ++) {
-        temp = *(int32_t *)&s_buff[i];
-#ifdef NO_WIFI	
-        temp = temp/65536;
-        temp_16 = (int16_t)(temp);	
-#else		
+        //temp = *(int32_t *)&s_buff[i];
+        tempU32 = s_buff[i]<<1;
+        temp = *(int32_t *)&tempU32;
+
+//        Serial.printf("  %08x", temp);
+//        Serial.printf("\n\r");
+//       temp = temp>>16;
         temp = temp/SIGNAL_GAIN;                            //8192;//16384;//32768;//65536;
         temp_16 = (int16_t)(temp);
-        temp_16 = reverse_sample16(temp_16);                //for SPH0645
-#endif
+        //temp_16 = reverse_sample16(temp_16);   //gain++     need 65536; //130000   262144   
+
         //Serial.printf("  %08x", temp);
        // d_buff[i] = (int16_t)(temp);
         d_buff[i] = temp_16; 
@@ -635,13 +649,25 @@ void prepare_sample(int16_t * d_buff, uint32_t* s_buff, uint32_t len)   //len - 
 void prepare_sample_24bit(uint8_t * d_buff, uint32_t* s_buff, uint32_t len)   //len - count of full word
 {
     //int32_t temp;
+    
     for (int i = 0; i < len; i ++) {
+#ifndef USE_SPH0645     
         *d_buff = (uint8_t)((s_buff[i]>>8)&0xFF); 
         d_buff++;
         *d_buff = (uint8_t)((s_buff[i]>>16)&0xFF); 
         d_buff++;
         *d_buff = (uint8_t)((s_buff[i]>>24)&0xFF);  
-        d_buff++;      
+        d_buff++; 
+#else
+        //for SPH0645
+        //temp = *(int32_t *)&s_buff[i];
+        *d_buff = (uint8_t)(((s_buff[i]<<1)>>8)&0xFF); 
+        d_buff++;
+        *d_buff = (uint8_t)(((s_buff[i]<<1)>>16)&0xFF); 
+        d_buff++;
+        *d_buff = (uint8_t)(((s_buff[i]<<1)>>24)&0xFF);  
+        d_buff++; 
+#endif             
     }
 }
 
