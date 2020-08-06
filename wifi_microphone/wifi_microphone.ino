@@ -20,7 +20,7 @@
 #define I2S_CLK_FREQ         80000000  // Hz
 #define I2S_SAMPLE_RATE      (33085)//(37400) (22050)  (33085) (16029)  frequency of mcu not accurate //write to stream
 #define I2S_SAMPLE_RATE_SET  (32000)//(36000) (21400)  (32000) (15500)   //21400 optimal for 22050    //set on I2S module
-#define BITS_PER_SAMPLE      (16)  // 16 or 24        //for 24bit & SAMPLE_RATE <= 33085 need baudrate > 921600
+#define BITS_PER_SAMPLE      (16)  // 16 or 24        //for 24bit & SAMPLE_RATE >= 33085 need baudrate > 921600
 #define SIGNAL_GAIN          (16384)//(65536)//(16384)  //65536 no gain, if < 65536 -> gain+   //8192;//16384;//32768;//65536; //130000   262144 131072
 #define REC_TIME             (6000) //sec
 #define NUM_CPY              ((I2S_SAMPLE_RATE * BITS_PER_SAMPLE / 8 * REC_TIME)/SLC_BUF_LEN)//500000
