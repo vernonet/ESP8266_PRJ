@@ -13,7 +13,7 @@
 //insert in vlc  "http:\\wifi-mic.local:8080\rec.wav"  or "http:\\ip:8080\rec.wav"   ip - ip address of mic
 
 //#define NO_WIFI            //testing the microphone using the "serial_audio.exe" program.
-#define USE_SPH0645          
+//#define USE_SPH0645          
 
 #define SERVER_PORT          8080
 #define BAUDRATE             921600//921600//921600    //500000 //baud one of 300, 600, 1200, 2400, 4800, 9600, 19200, 31250, 38400, 57600, 74880, 115200, 230400, 256000, 460800, 921600, 1843200, 3686400
@@ -662,15 +662,6 @@ void prepare_sample_24bit(uint8_t * d_buff, uint32_t* s_buff, uint32_t len)   //
     uint32_t temp_U;
     
     for (int i = 0; i < len; i ++) {
-#ifndef USE_SPH0645     
-        *d_buff = (uint8_t)((s_buff[i]>>8)&0xFF); 
-        d_buff++;
-        *d_buff = (uint8_t)((s_buff[i]>>16)&0xFF); 
-        d_buff++;
-        *d_buff = (uint8_t)((s_buff[i]>>24)&0xFF);  
-        d_buff++; 
-#else
-        //for SPH0645
         temp = *(int32_t *)&s_buff[i]<<1;
         temp = (temp + 2300483647)<<(2 - SIGNAL_GAIN);  //2147483647 
         *d_buff = (uint8_t)(((temp)>>8)&0xFF); 
@@ -678,8 +669,7 @@ void prepare_sample_24bit(uint8_t * d_buff, uint32_t* s_buff, uint32_t len)   //
         *d_buff = (uint8_t)(((temp)>>16)&0xFF); 
         d_buff++;
         *d_buff = (uint8_t)(((temp)>>24)&0xFF);  
-        d_buff++; 
-#endif             
+        d_buff++;          
     }
 }
 
